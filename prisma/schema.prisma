@@ -1,0 +1,365 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  MEMBER
+  VIEWER
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  firstName       String?
+  lastName        String?
+  profileImageUrl String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastLoginAt     DateTime?
+
+  // Clerk integration
+  clerkId             String  @unique
+  clerkOrganizationId String?
+
+  // Free tier tracking
+  freeImagesUsed     Int     @default(0)
+  freeImagesLimit    Int     @default(4) // 2 from signup + 2 additional
+  hasUsedSignupBonus Boolean @default(false)
+
+  // Tenant relationship
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id])
+
+  // Team role within tenant (single-team model)
+  role Role @default(MEMBER)
+
+  // User preferences
+  preferences UserPreferences?
+
+  // Relationships
+  images             Image[]
+  imageCollections   ImageCollection[]
+  imageFolders       ImageFolder[]
+  refinementRequests ImageRefinementRequest[]
+  usageLogs          UsageLog[]
+  notifications      Notification[]
+  teamMemberships    TeamMember[]
+  createdTeamMembers TeamMember[]             @relation("TeamMemberCreator")
+
+  // Team invites created by this user
+  createdInvites TeamInvite[] @relation("InviteCreator")
+
+  @@index([email])
+  @@index([clerkId])
+  @@map("users")
+}
+
+model Tenant {
+  id                   String    @id @default(cuid())
+  name                 String
+  slug                 String    @unique
+  subscriptionPlan     String    @default("free")
+  tokensAllocated      Int       @default(4)
+  tokensUsed           Int       @default(0)
+  billingStatus        String    @default("inactive")
+  paddleCustomerId     String?   @unique
+  paddleSubscriptionId String?   @unique
+  paddlePriceId        String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  isActive             Boolean   @default(true)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Clerk organization integration
+  clerkOrganizationId String? @unique
+
+  // Relationships
+  users         User[]
+  images        Image[]
+  subscriptions Subscription[]
+  invoices      Invoice[]
+  usageLogs     UsageLog[]
+  teamMembers   TeamMember[]
+  // Pending invites for this tenant
+  teamInvites   TeamInvite[]
+
+  @@map("tenants")
+}
+
+model TeamInvite {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email       String
+  role        Role      @default(MEMBER)
+  token       String    @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdById String
+  createdBy   User      @relation("InviteCreator", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId])
+  @@map("team_invites")
+}
+
+model UserPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  defaultRoomStyle     String @default("modern")
+  notificationSettings Json   @default("{}")
+  dashboardLayout      Json   @default("{}")
+  themePreference      String @default("light")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model Image {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id])
+
+  collectionId String?
+  collection   ImageCollection? @relation(fields: [collectionId], references: [id])
+
+  folderId String?
+  folder   ImageFolder? @relation(fields: [folderId], references: [id])
+
+  originalUrl  String
+  processedUrl String?
+  thumbnailUrl String?
+
+  roomType String
+  style    String
+  status   String @default("pending") // pending, processing, completed, failed
+
+  tokensUsed     Int  @default(1)
+  processingTime Int? // in seconds
+  qualityRating  Int? // 1-5 stars
+
+  isFavorite  Boolean  @default(false)
+  clientNotes String?
+  tags        String[] @default([])
+
+  // Enhanced metadata for search
+  searchableText String? // Combined text for full-text search
+
+  // Refinement and conversation context
+  parentImageId   String? // Reference to the original image this is a refinement of
+  parentImage     Image?  @relation("ImageRefinements", fields: [parentImageId], references: [id])
+  refinements     Image[] @relation("ImageRefinements")
+  refinementCount Int     @default(0) // How many refinements have been made
+  conversationId  String? // Groups related images in a conversation
+
+  metadata Json @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  refinementRequests ImageRefinementRequest[]
+
+  @@index([userId, createdAt])
+  @@index([userId, folderId, createdAt])
+  @@index([userId, status])
+  @@index([userId, roomType])
+  @@map("images")
+}
+
+model ImageCollection {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  images Image[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("image_collections")
+}
+
+model ImageRefinementRequest {
+  id               String   @id @default(cuid())
+  imageId          String
+  userId           String
+  userFeedback     String // What the user didn't like or wants changed
+  specificRequests Json? // Structured feedback (colors, furniture, lighting, etc.)
+  aiResponse       String? // AI's interpretation of the feedback
+  status           String   @default("pending") // pending, processing, completed, failed
+  tokensUsed       Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relationships
+  image Image @relation(fields: [imageId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@map("image_refinement_requests")
+}
+
+model RoomPrompt {
+  id             String  @id @default(cuid())
+  roomType       String
+  style          String
+  promptTemplate String
+  isActive       Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roomType, style])
+  @@map("room_prompts")
+}
+
+model Subscription {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  paddleCustomerId     String  @unique
+  paddleSubscriptionId String? @unique
+  paddlePriceId        String?
+
+  planName       String
+  price          Int // in cents
+  tokensIncluded Int
+
+  status             String // active, canceled, past_due, incomplete
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  paddleInvoiceId String    @unique
+  amount          Int // in cents
+  status          String // paid, open, void, uncollectible
+  dueDate         DateTime?
+  paidDate        DateTime?
+
+  invoiceUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("invoices")
+}
+
+model UsageLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id])
+
+  action         String // image_generated, subscription_created, etc.
+  tokensConsumed Int    @default(0)
+  metadata       Json   @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@map("usage_logs")
+}
+
+model TeamMember {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role        String @default("user") // admin, manager, user
+  permissions Json   @default("{}")
+
+  invitedBy String?
+  inviter   User?   @relation("TeamMemberCreator", fields: [invitedBy], references: [id])
+
+  joinedAt DateTime @default(now())
+  isActive Boolean  @default(true)
+
+  @@unique([tenantId, userId])
+  @@map("team_members")
+}
+
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    String // info, warning, error, success
+  title   String
+  message String
+  isRead  Boolean @default(false)
+
+  actionUrl String?
+  metadata  Json    @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model IpUsageTracking {
+  id              String   @id @default(cuid())
+  ipAddress       String
+  imagesGenerated Int      @default(0)
+  lastUsedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  // Track daily usage to prevent abuse
+  dailyUsage Json @default("{}") // { "2024-01-15": 2, "2024-01-16": 1 }
+
+  @@unique([ipAddress])
+  @@map("ip_usage_tracking")
+}
+
+model ImageFolder {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parentFolderId String?
+  parentFolder   ImageFolder?  @relation("FolderHierarchy", fields: [parentFolderId], references: [id])
+  subFolders     ImageFolder[] @relation("FolderHierarchy")
+
+  images Image[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("image_folders")
+}

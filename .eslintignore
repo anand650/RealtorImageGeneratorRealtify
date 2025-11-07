@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.next/
+.swc/
+
+# Test files
+**/__tests__/**
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+jest.setup.ts
+jest.config.js
+
+# Scripts
+scripts/**
+
+# Config files
+tailwind.config.js
+postcss.config.mjs
+next.config.ts
+amplify.yml
+
+# Build outputs
+*.tsbuildinfo
+dist/
+build/
+

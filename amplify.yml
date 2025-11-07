@@ -1,0 +1,39 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - |
+          if [ -d "realtor-image-generator" ]; then
+            cd realtor-image-generator && echo "Changed to app directory"
+          fi
+        - |
+          if [ -d "realtor-image-generator" ]; then
+            cd realtor-image-generator && npm install
+          else
+            npm install
+          fi
+        - |
+          if [ -d "realtor-image-generator" ]; then
+            cd realtor-image-generator && npx prisma generate
+          else
+            npx prisma generate
+          fi
+    build:
+      commands:
+        - |
+          if [ -d "realtor-image-generator" ]; then
+            cd realtor-image-generator && npm run build
+          else
+            npm run build
+          fi
+  artifacts:
+    baseDirectory: realtor-image-generator/.next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - realtor-image-generator/node_modules/**/*
+      - realtor-image-generator/.next/cache/**/*
+      - realtor-image-generator/.next/standalone/**/*
+
