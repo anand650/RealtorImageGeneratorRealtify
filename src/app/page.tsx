@@ -117,36 +117,6 @@ export default async function HomePage() {
               Turn empty rooms into beautifully furnished, market-ready spaces in under 2 minutes.
             </p>
 
-            <div className="max-w-3xl mx-auto mb-14">
-              <div className="relative overflow-hidden bg-gradient-to-r from-red-500 via-red-600 to-red-500 rounded-2xl p-6 md:p-8 shadow-2xl">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-10"></div>
-                <div className="relative flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex-1 text-center md:text-left">
-                    <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                      <Sparkles className="h-5 w-5 text-white animate-pulse" />
-                      <span className="text-white font-semibold text-sm md:text-base">Limited Time Launch Offer</span>
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                      50% OFF for Lifetime
-                    </h3>
-                    <p className="text-red-100 text-sm md:text-base mb-3">
-                      Subscribe within the countdown to lock in your 50% discount for lifetime!
-                    </p>
-                    <div className="flex items-center justify-center md:justify-start">
-                      <LaunchOfferTimer />
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-4 text-center border-2 border-white/30">
-                      <div className="text-white text-xs md:text-sm font-semibold mb-1">Special Launch Price</div>
-                      <div className="text-2xl md:text-3xl font-bold text-white">50% OFF</div>
-                      <div className="text-white text-xs mt-2 opacity-90">Lifetime Discount</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
               <Link href={isSignedIn ? '/dashboard' : '/sign-up'}>
                 <Button className="btn-gold text-lg px-12 py-6">

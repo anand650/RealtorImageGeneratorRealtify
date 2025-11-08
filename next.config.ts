@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable standalone output for better performance and smaller Docker images
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-  
+  // Enable standalone output only when explicitly requested (e.g. for Docker builds)
+  ...(process.env.NEXT_ENABLE_STANDALONE === 'true' ? { output: 'standalone' } : {}),
+ 
   // Image optimization configuration
   images: {
     // Allow images from S3

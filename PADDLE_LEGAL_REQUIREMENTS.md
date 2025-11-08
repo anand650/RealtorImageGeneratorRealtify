@@ -77,7 +77,7 @@ All legal pages are linked in the footer of the main landing page (`src/app/page
 ## 📋 Additional Requirements for Paddle Verification
 
 ### Contact Information
-- ✅ Email: support@realtify.com (used throughout)
+- ✅ Email: support@realtify.studio (used throughout)
 - ✅ Privacy email: privacy@realtify.com
 - ⚠️ **Action Required**: Update mailing address placeholder in Terms of Service
   - Current: `[Your Business Address - Update with actual address]`
@@ -119,7 +119,7 @@ All legal pages are linked in the footer of the main landing page (`src/app/page
    - Replace `[Your Business Address - Update with actual address]` with actual address
 
 2. **Verify Contact Information**:
-   - Ensure support@realtify.com is active and monitored
+- Ensure support@realtify.studio is active and monitored
    - Ensure privacy@realtify.com is active (if using)
    - Update any placeholder email addresses if needed
 
