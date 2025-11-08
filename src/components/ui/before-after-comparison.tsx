@@ -22,6 +22,17 @@ export function BeforeAfterComparison({ images }: BeforeAfterComparisonProps) {
 
   const currentImage = images[currentIndex]
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    images.forEach((image) => {
+      const beforeImg = new Image()
+      const afterImg = new Image()
+      beforeImg.src = image.before
+      afterImg.src = image.after
+    })
+  }, [images])
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !containerRef.current) return
     
@@ -72,13 +83,13 @@ export function BeforeAfterComparison({ images }: BeforeAfterComparisonProps) {
         <div className="absolute inset-0">
           <img
             src={currentImage.after}
-            alt="Before"
-            className="w-full h-full object-cover"
+            alt={`${currentImage.title ?? 'Enhanced'} image after processing`}
+            className="w-full h-full object-cover transition-opacity duration-300"
+            loading="lazy"
             onError={(e) => {
               e.currentTarget.src = '/placeholder-image.svg'
             }}
           />
-          <div className="absolute inset-0 bg-black/20"></div>
         </div>
 
         {/* Before Image (Clipped - Original version) */}
@@ -88,8 +99,9 @@ export function BeforeAfterComparison({ images }: BeforeAfterComparisonProps) {
         >
           <img
             src={currentImage.before}
-            alt="After"
-            className="w-full h-full object-cover"
+            alt={`${currentImage.title ?? 'Original'} image before processing`}
+            className="w-full h-full object-cover transition-opacity duration-300"
+            loading="lazy"
             onError={(e) => {
               e.currentTarget.src = '/placeholder-image.svg'
             }}

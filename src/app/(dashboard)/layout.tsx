@@ -4,6 +4,9 @@ import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { UserInitializer } from '@/components/dashboard/UserInitializer'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export default async function DashboardLayout({
   children,
 }: {
