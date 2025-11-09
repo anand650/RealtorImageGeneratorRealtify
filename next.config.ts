@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   // Enable standalone output only when explicitly requested (e.g. for Docker builds)
   ...(process.env.NEXT_ENABLE_STANDALONE === 'true' ? { output: 'standalone' } : {}),
- 
+
   // Image optimization configuration
   images: {
     // Allow images from S3
@@ -44,6 +45,33 @@ const nextConfig: NextConfig = {
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog'],
+    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
+  },
+
+  webpack: (config, { isServer }) => {
+    if (!config.module) {
+      config.module = { rules: [] };
+    }
+
+    config.module.rules = config.module.rules || [];
+    config.module.rules.push({
+      test: /\.node$/,
+      use: 'node-loader',
+    });
+
+    if (!config.resolve) {
+      config.resolve = {};
+    }
+    if (!config.resolve.alias) {
+      config.resolve.alias = {};
+    }
+    config.resolve.alias['.prisma/client'] = path.resolve(__dirname, 'node_modules/.prisma/client');
+
+    if (isServer) {
+      config.externals = config.externals || [];
+    }
+
+    return config;
   },
 };
 
