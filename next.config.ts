@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
   },
 
   outputFileTracingIncludes: {
-    '/(api|trpc)(.*)': ['./node_modules/.prisma/client/**'],
+    '/(.*)': ['./node_modules/.prisma/client/**', './node_modules/@prisma/client/**'],
   },
 
   turbopack: {},
