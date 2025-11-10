@@ -44,8 +44,9 @@ const nextConfig: NextConfig = {
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog'],
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
   },
+
+  serverExternalPackages: ['@prisma/client', 'prisma'],
 
   outputFileTracingIncludes: {
     '/(.*)': ['./node_modules/.prisma/client/**', './node_modules/@prisma/client/**'],

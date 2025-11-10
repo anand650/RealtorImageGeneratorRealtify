@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "postbuild": "node scripts/copy-prisma.js",
     "start": "next start",
     "postinstall": "prisma generate",
     "lint": "eslint",
