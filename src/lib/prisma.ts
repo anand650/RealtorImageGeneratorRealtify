@@ -1,4 +1,22 @@
 import { PrismaClient } from '@prisma/client'
+import path from 'path'
+import fs from 'fs'
+
+if (
+  process.env.NODE_ENV === 'production' &&
+  !process.env.PRISMA_QUERY_ENGINE_LIBRARY
+) {
+  const defaultEnginePath = path.join(
+    process.cwd(),
+    '.prisma',
+    'client',
+    'libquery_engine-rhel-openssl-3.0.x.so.node',
+  )
+
+  if (fs.existsSync(defaultEnginePath)) {
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY = defaultEnginePath
+  }
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
