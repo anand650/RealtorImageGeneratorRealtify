@@ -50,10 +50,12 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@prisma/client', 'prisma'],
 
   turbopack: {},
-  
-  webpack: (config) => {
-    config.plugins = config.plugins || [];
-    config.plugins.push(new PrismaPlugin());
+
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins = config.plugins || [];
+      config.plugins.push(new PrismaPlugin());
+    }
     return config;
   },
 };
