@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PrismaPlugin } from "@prisma/nextjs-monorepo-workaround-plugin";
 
 const nextConfig: NextConfig = {
   // Enable standalone output only when explicitly requested (e.g. for Docker builds)
@@ -48,11 +49,13 @@ const nextConfig: NextConfig = {
 
   serverExternalPackages: ['@prisma/client', 'prisma'],
 
-  outputFileTracingIncludes: {
-    '/(.*)': ['node_modules/.prisma/client/**', 'node_modules/@prisma/client/**'],
-  },
-
   turbopack: {},
+  
+  webpack: (config) => {
+    config.plugins = config.plugins || [];
+    config.plugins.push(new PrismaPlugin());
+    return config;
+  },
 };
 
 export default nextConfig;
